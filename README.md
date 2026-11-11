@@ -2,7 +2,7 @@
 
 My LeetCode progress, tracked automatically.
 
-**Live site:** https://prathameshpal.github.io/DSA-journey/
+**Live site:** https://prathamesh-pal.github.io/DSA-journey/
 
 ## Add a question
 
