@@ -69,7 +69,20 @@
 
 from typing import List, Optional
 
-
 class Solution:
     def twoSum(self, nums: list[int], target: int) -> list[int]:
-        pass
+        seen = {}
+
+        for i in range(len(nums)):
+            complement = target - nums[i]
+
+            if complement in seen:
+                return [seen[complement], i]
+
+            seen[nums[i]] = i
+
+solution = Solution()
+
+print(solution.twoSum([2, 7, 11, 15], 9))
+print(solution.twoSum([3, 2, 4], 6))
+print(solution.twoSum([3, 3], 6))
