@@ -6,6 +6,7 @@ Usage:
     python add.py 15 python
     python add.py 15 cpp
     python add.py 15 cpp --no-open   (skip opening the file)
+    python add.py --sync             (re-check which problems are solved, refresh README)
 
 No third-party packages needed (standard library only).
 """
@@ -162,22 +163,58 @@ def load_index():
         return {}  # missing or empty/corrupt index.json: start fresh
 
 
+_SKIP = ("#", "//", "/*", "*", "from ", "import ", "class ", "def ", "@", "using ", "public:", "private:", "protected:")
+_CTRL = re.compile(r"(for|while|if|else|switch|do|try|catch)\b")
+
+
+def is_solved(code):
+    """Solved = real statements beyond LeetCode's empty starter stub."""
+    for raw in code.splitlines():
+        s = raw.strip()
+        if not s or s.startswith(_SKIP) or s in ("pass", "...", "{", "}", "};"):
+            continue
+        if "=" not in s and s.endswith("{") and not _CTRL.match(s):
+            continue  # C++ function signature
+        return True
+    return False
+
+
+def code_of(path):
+    lines = (ROOT / path).read_text(encoding="utf-8").splitlines()
+    i = 0
+    while i < len(lines) and re.match(r"^(#|//)(\s|$)", lines[i]):
+        i += 1
+    return "\n".join(lines[i:])
+
+
+def entry_solved(e):
+    for p in e["files"].values():
+        try:
+            if is_solved(code_of(p)):
+                return True
+        except OSError:
+            pass
+    return False
+
+
 def render_readme_table(index):
     rows = sorted(index.values(), key=lambda e: e["number"])
+    status = {r["number"]: entry_solved(r) for r in rows}
+    done = [r for r in rows if status[r["number"]]]
     lines = [
-        f"**Solved: {len(rows)}**  "
-        f"(Easy {sum(r['difficulty']=='Easy' for r in rows)} / "
-        f"Medium {sum(r['difficulty']=='Medium' for r in rows)} / "
-        f"Hard {sum(r['difficulty']=='Hard' for r in rows)})",
+        f"**Solved: {len(done)} / {len(rows)} logged**  "
+        f"(Easy {sum(r['difficulty']=='Easy' for r in done)} / "
+        f"Medium {sum(r['difficulty']=='Medium' for r in done)} / "
+        f"Hard {sum(r['difficulty']=='Hard' for r in done)})",
         "",
-        "| # | Title | Difficulty | Topic | Solutions | Date |",
-        "|---|-------|------------|-------|-----------|------|",
+        "| # | Title | Difficulty | Topic | Status | Solutions | Date |",
+        "|---|-------|------------|-------|--------|-----------|------|",
     ]
     for r in rows:
         sols = " · ".join(f"[{l}]({p})" for l, p in sorted(r["files"].items()))
         lines.append(
-            f"| {r['number']} | {r['title']} | {r['difficulty']} | "
-            f"{r['topic']} | {sols} | {r['date']} |"
+            f"| {r['number']} | {r['title']} | {r['difficulty']} | {r['topic']} | "
+            f"{'Solved' if status[r['number']] else 'Unsolved'} | {sols} | {r['date']} |"
         )
     return "\n".join(lines)
 
@@ -214,11 +251,23 @@ def open_file(path):
 
 
 # ---------- main ----------
+def sync():
+    """Re-check every solution file and refresh the README table."""
+    index = load_index()
+    for e in sorted(index.values(), key=lambda e: e["number"]):
+        print(f"{e['number']:>5}  {'Solved' if entry_solved(e) else 'Unsolved':<8} {e['title']}")
+    update_readme(index)
+    print("README.md updated.")
+
+
 def main():
+    if "--sync" in sys.argv:
+        sync()
+        return
     args = [a for a in sys.argv[1:] if a != "--no-open"]
     no_open = "--no-open" in sys.argv
     if len(args) != 2 or args[1].lower() not in LANGS or not args[0].isdigit():
-        raise SystemExit("Usage: python add.py <question_number> <python|cpp> [--no-open]")
+        raise SystemExit("Usage: python add.py <number> <python|cpp> [--no-open]   |   python add.py --sync")
     number, lang = int(args[0]), args[1].lower()
 
     slug = find_slug(number)

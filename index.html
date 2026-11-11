@@ -61,13 +61,13 @@ const lab = t => `<div class="font-mono text-[10px] uppercase tracking-[.14em] t
 const panel = (cls, inner) => `<section class="panel border border-line bg-surface p-5 ${cls}">${inner}</section>`;
 const count = (a, d) => a.filter(q => q.difficulty === d).length;
 const badge = d => `<span class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-line rounded-sm" style="color:var(--${DK[d]})"><i class="w-1.5 h-1.5 rounded-full bg-current"></i>${esc(d)}</span>`;
-const statusOf = q => CX[q.number] ? (CX[q.number].done ? 'Documented' : 'Needs notes') : '…';
-const statusCell = q => { const s = statusOf(q);
-  return `<span class="font-mono text-[10px] uppercase tracking-wider ${s==='Documented'?'text-ink':'text-mute'}"><i class="inline-block w-1.5 h-1.5 mr-1.5 rounded-full" style="background:${s==='Documented'?'var(--sage)':'var(--line)'}"></i>${s}</span>`; };
+const statusOf = q => CX[q.number] ? (CX[q.number].solved ? 'Solved' : 'Unsolved') : '…';
+const stPill = s => `<span class="font-mono text-[10px] uppercase tracking-wider ${s ? 'text-ink' : 'text-accent'}"><i class="inline-block w-1.5 h-1.5 mr-1.5 rounded-full" style="background:${s ? 'var(--sage)' : 'var(--accent)'}"></i>${s ? 'Solved' : 'Unsolved'}</span>`;
+const statusCell = q => { const s = statusOf(q); return s === '…' ? '<span class="font-mono text-[10px] text-mute">…</span>' : stPill(s === 'Solved'); };
 
-function categories() {
+function categories(src = DATA) {
   const m = new Map();
-  for (const q of DATA) for (const t of topicsOf(q)) {
+  for (const q of src) for (const t of topicsOf(q)) {
     if (!m.has(t.slug)) m.set(t.slug, { slug:t.slug, name:t.name, items:[] });
     m.get(t.slug).items.push(q);
   }
@@ -91,12 +91,28 @@ function parseNotes(n) {
   const o = { approach:g('Approach'), time:g('Time complexity'), space:g('Space complexity') };
   o.done = !!(o.approach || o.time || o.space); return o;
 }
+// A problem counts as solved once the code has real statements beyond LeetCode's empty starter stub.
+const CTRL = /^(for|while|if|else|switch|do|try|catch)\b/;
+function isSolved(code) {
+  for (const raw of code.split('\n')) { const s = raw.trim();
+    if (!s || /^(#|\/\/|\/\*|\*|from |import |class |def |@|using |public:|private:|protected:)/.test(s) || /^(pass|\.\.\.|\{|\}|\};)$/.test(s)) continue;
+    if (!s.includes('=') && s.endsWith('{') && !CTRL.test(s)) continue;   // C++ function signature
+    return true; }
+  return false;
+}
+let LOADED = false;
 async function loadMeta() {
   await Promise.all(DATA.map(async q => {
-    try { const r = await fetch(q.files[Object.keys(q.files)[0]]); if (!r.ok) return;
-      CX[q.number] = parseNotes(parseSolution(await r.text()).notes); } catch (e) {}
+    const c = { solved:false, langs:{} };
+    await Promise.all(Object.keys(q.files).map(async l => {
+      try { const r = await fetch(q.files[l]); if (!r.ok) return;
+        const p = parseSolution(await r.text()), s = isSolved(p.code);
+        c.langs[l] = s; if (s) c.solved = true;
+        if (!c.done) Object.assign(c, parseNotes(p.notes)); } catch (e) {}
+    }));
+    if (Object.keys(c.langs).length) CX[q.number] = c;
   }));
-  render(true);
+  LOADED = Object.keys(CX).length > 0; render(true);
 }
 
 // ---- dashboard ----
@@ -123,19 +139,21 @@ const TREE = `<svg aria-hidden="true" viewBox="0 0 220 150" class="absolute righ
 
 function viewHome() {
   if (!DATA.length) { app.innerHTML = `<div class="py-24 max-w-lg">${lab('Empty index')}<h1 class="font-display font-bold text-4xl mt-2">No problems logged yet.</h1><p class="mt-3 text-mute">Run <code class="font-mono px-1.5 py-0.5 bg-surface border border-line">python3 add.py 1 python</code>, push, and refresh.</p></div>`; return; }
-  const n = DATA.length, dates = {}; DATA.forEach(q => dates[q.date] = (dates[q.date] || 0) + 1);
-  const s = streaks(new Set(Object.keys(dates))), files = DATA.reduce((a,q) => a + Object.keys(q.files).length, 0);
-  const cats = categories(), top = cats.slice(0,8), max = top[0].items.length;
+  const base = LOADED ? DATA.filter(q => statusOf(q) === 'Solved') : DATA, n = base.length, dates = {};
+  base.forEach(q => dates[q.date] = (dates[q.date] || 0) + 1);
+  const s = streaks(new Set(Object.keys(dates))), files = base.reduce((a,q) => a + Object.keys(q.files).length, 0);
+  const top = categories(base).slice(0,8), max = top.length ? top[0].items.length : 1, open = DATA.length - n;
   const recent = [...DATA].sort((a,b) => b.date.localeCompare(a.date) || b.number - a.number).slice(0,6);
-  const seg = d => { const c = count(DATA,d); return c ? `<div class="bar h-full" style="width:${c/n*100}%;background:var(--${DK[d]})" title="${d}: ${c}"></div>` : ''; };
+  const seg = d => { const c = count(base,d); return c ? `<div class="bar h-full" style="width:${c/n*100}%;background:var(--${DK[d]})" title="${d}: ${c}"></div>` : ''; };
   const cx = {}; Object.values(CX).forEach(c => { const k = c.time.replace(/\s/g,''); if (k) cx[k] = (cx[k]||0) + 1; });
   const cxl = Object.entries(cx).sort((a,b) => b[1]-a[1]).slice(0,5), cxmax = cxl.length ? cxl[0][1] : 1;
   app.innerHTML = `<div class="grid gap-4 lg:grid-cols-3">
   ${panel('relative overflow-hidden lg:col-span-2', TREE + lab('Problems solved') + `
-    <div class="font-display font-bold leading-none tracking-tighter text-[5.5rem] sm:text-[8rem] mt-2">${String(n).padStart(2,'0')}</div>
+    <div class="font-display font-bold leading-none tracking-tighter text-[5.5rem] sm:text-[8rem] mt-2">${LOADED ? String(n).padStart(2,'0') : '··'}</div>
     <div class="mt-6 flex h-2 border border-line bg-bg">${seg('Easy')}${seg('Medium')}${seg('Hard')}</div>
     <div class="mt-3 flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs">
-      ${['Easy','Medium','Hard'].map(d => `<span style="color:var(--${DK[d]})">${d.toUpperCase()} <b class="text-ink">${count(DATA,d)}</b></span>`).join('')}
+      ${['Easy','Medium','Hard'].map(d => `<span style="color:var(--${DK[d]})">${d.toUpperCase()} <b class="text-ink">${count(base,d)}</b></span>`).join('')}
+      ${LOADED ? `<span class="text-mute sm:ml-auto">UNSOLVED <b class="text-accent">${open}</b></span>` : ''}
     </div>`)}
   ${panel('', lab('Streak') + `<div class="font-display font-bold text-6xl mt-2 leading-none">${s.now}<span class="font-mono text-xs font-normal text-mute ml-2">DAYS</span></div>
     <dl class="mt-6 grid grid-cols-3 gap-2 font-mono text-xs border-t border-line pt-3">
@@ -146,7 +164,7 @@ function viewHome() {
   ${panel('', lab('Time complexity') + (cxl.length ? `<ul class="mt-4 space-y-2 font-mono text-xs">${cxl.map(([k,v]) => `<li><div class="flex justify-between"><span>${esc(k)}</span><span class="text-mute">${v}</span></div><div class="h-1 bg-line mt-1"><div class="bar h-full bg-accent" style="width:${v/cxmax*100}%"></div></div></li>`).join('')}</ul>`
      : `<p class="mt-4 text-sm text-mute">Fill in <span class="font-mono">Time complexity:</span> in a solution's notes and the distribution appears here.</p>`))}
   ${panel('', lab('Topic mastery') + `<ul class="mt-4 space-y-3">${top.map(c => `<li><a href="#/c/${esc(c.slug)}" class="block group"><div class="flex justify-between font-mono text-xs"><span class="group-hover:text-accent">${esc(c.name)}</span><span class="text-mute">${c.items.length}</span></div><div class="h-1 bg-line mt-1"><div class="bar h-full bg-sage" style="width:${c.items.length/max*100}%"></div></div></a></li>`).join('')}</ul>`)}
-  ${panel('lg:col-span-2', lab('Recent activity') + `<ul class="mt-3 divide-y divide-line">${recent.map(q => `<li><a href="#/q/${q.number}" class="flex items-center gap-4 py-2.5 hover:text-accent"><span class="font-mono text-xs text-mute w-12">#${q.number}</span><span class="flex-1 truncate font-medium">${esc(q.title)}</span>${badge(q.difficulty)}<span class="hidden sm:block font-mono text-xs text-mute">${esc(q.date)}</span></a></li>`).join('')}</ul>
+  ${panel('lg:col-span-2', lab('Recent activity') + `<ul class="mt-3 divide-y divide-line">${recent.map(q => `<li><a href="#/q/${q.number}" class="flex items-center gap-4 py-2.5 hover:text-accent"><span class="font-mono text-xs text-mute w-12">#${q.number}</span><span class="flex-1 truncate font-medium">${esc(q.title)}</span>${badge(q.difficulty)}<span class="hidden sm:block w-24">${statusCell(q)}</span><span class="hidden sm:block font-mono text-xs text-mute">${esc(q.date)}</span></a></li>`).join('')}</ul>
     <a href="#/problems" class="inline-block mt-3 font-mono text-[11px] uppercase tracking-[.14em] border-b border-accent">All problems →</a>`)}
   </div>`;
 }
@@ -183,7 +201,7 @@ function viewProblems() {
       <kbd class="hidden sm:block absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-mute border border-line px-1.5 py-0.5">/</kbd></div>
     <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3" id="ctl">
       <div class="flex gap-1.5" role="group" aria-label="Difficulty">${['All','Easy','Medium','Hard'].map(v => pill('diff', v)).join('')}</div>
-      <div class="flex gap-1.5" role="group" aria-label="Status">${['All','Documented','Needs notes'].map(v => pill('status', v)).join('')}</div>
+      <div class="flex gap-1.5" role="group" aria-label="Status">${['All','Solved','Unsolved'].map(v => pill('status', v)).join('')}</div>
       <select id="topic" class="${sel}" aria-label="Topic"><option value="all">All topics</option>${categories().map(c => `<option value="${esc(c.slug)}" ${c.slug===F.topic?'selected':''}>${esc(c.name)} (${c.items.length})</option>`).join('')}</select>
       <select id="sort" class="${sel}" aria-label="Sort">${[['num','Number'],['new','Newest'],['diff','Difficulty'],['title','Title']].map(([v,l]) => `<option value="${v}" ${v===F.sort?'selected':''}>Sort: ${l}</option>`).join('')}</select>
       <span id="count" class="ml-auto font-mono text-[11px] text-mute"></span></div>
@@ -207,7 +225,7 @@ async function viewQuestion(num, lang) {
       <span class="font-display font-bold text-5xl sm:text-7xl leading-none text-accent">${String(q.number).padStart(2,'0')}</span>
       <h1 class="font-display font-bold text-3xl sm:text-4xl tracking-tight">${esc(q.title)}</h1></div>
     <div class="mt-4 flex flex-wrap items-center gap-2">${badge(q.difficulty)}${tp.map(t => `<a href="#/c/${esc(t.slug)}" class="font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-line hover:border-accent rounded-sm">${esc(t.name)}</a>`).join('')}
-      <span class="font-mono text-[10px] text-mute ml-1">ADDED ${esc(q.date)}</span></div>
+      <span class="font-mono text-[10px] text-mute ml-1">ADDED ${esc(q.date)}</span><span id="st" class="ml-1"></span></div>
     <div class="mt-6 flex gap-1.5" id="langs" role="group" aria-label="Language">${langs.map(l => `<button data-l="${l}" aria-pressed="${l===lang}" class="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 border rounded-full ${l===lang ? 'bg-ink text-bg border-ink' : 'border-line text-mute hover:text-ink hover:border-ink'}">${LANG[l] || esc(l)}</button>`).join('')}</div>
     <div id="body" class="mt-6 font-mono text-xs text-mute">LOADING…</div>`;
   document.getElementById('langs').onclick = e => { const l = e.target.dataset.l; if (l) viewQuestion(num, l); };
@@ -228,6 +246,7 @@ async function viewQuestion(num, lang) {
       (notes ? sec('My notes', prose(notes)) : '') +
       `<a class="font-mono text-[11px] uppercase tracking-[.14em] border-b border-accent" href="https://leetcode.com/problems/${esc(slugify(q.title))}/" target="_blank" rel="noopener">Open on LeetCode ↗</a>`;
     const el = document.getElementById('code'); el.textContent = code; hljs.highlightElement(el);
+    document.getElementById('st').innerHTML = stPill(isSolved(code));
     document.getElementById('copy').onclick = async e => { const b = e.currentTarget;
       try { await navigator.clipboard.writeText(code); b.textContent = 'Copied'; } catch (_) { b.textContent = 'Failed'; }
       setTimeout(() => b.textContent = 'Copy', 1500); };
