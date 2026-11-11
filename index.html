@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DSA Journey</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>tailwind.config = { darkMode: 'class' };</script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script>
+    // apply saved theme before paint
+    try {
+      const t = localStorage.getItem('theme');
+      if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  </script>
+  <style>
+    pre code.hljs { padding: 1rem; border-radius: 0.75rem; font-size: 0.85rem; }
+  </style>
+</head>
+<body class="bg-orange-200 text-slate-800 dark:bg-slate-950 dark:text-slate-200 min-h-screen">
+  <header class="border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="#/" class="text-xl font-bold tracking-tight">DSA <span class="text-emerald-600 dark:text-emerald-400">Journey</span></a>
+      <button id="themeBtn" class="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Theme</button>
+    </div>
+  </header>
+
+  <main id="app" class="max-w-5xl mx-auto px-4 py-8"></main>
+
+  <script>
+    const app = document.getElementById('app');
+    let DATA = [];
+
+    const DIFF = {
+      Easy:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+      Medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+      Hard:   'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
+    };
+    const LANG_LABEL = { python: 'Python', cpp: 'C++' };
+    const CARD = 'block rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md hover:border-emerald-400 dark:hover:border-emerald-500 transition';
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const badge = (d) => `<span class="text-xs font-medium px-2 py-0.5 rounded-full ${DIFF[d] || ''}">${esc(d)}</span>`;
+
+    // every question is listed under all of its topics
+    const topicsOf = (q) => (q.topics && q.topics.length)
+      ? q.topics
+      : [{ name: q.topic || 'Uncategorized', slug: slugify(q.topic || 'uncategorized') }];
+
+    function categories() {
+      const map = new Map();
+      for (const q of DATA) for (const t of topicsOf(q)) {
+        if (!map.has(t.slug)) map.set(t.slug, { slug: t.slug, name: t.name, items: [] });
+        map.get(t.slug).items.push(q);
+      }
+      return [...map.values()].sort((a, b) => b.items.length - a.items.length || a.name.localeCompare(b.name));
+    }
+    const count = (items, d) => items.filter(q => q.difficulty === d).length;
+
+    // ---------- views ----------
+    function viewHome() {
+      const cats = categories();
+      if (!DATA.length) {
+        app.innerHTML = `<div class="text-center py-20">
+          <h1 class="text-2xl font-bold mb-2">No questions yet</h1>
+          <p class="text-slate-500">Run <code class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">python add.py 1 python</code> and refresh.</p></div>`;
+        return;
+      }
+      app.innerHTML = `
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold tracking-tight">${DATA.length} solved</h1>
+          <p class="text-slate-500 mt-1">Easy ${count(DATA,'Easy')} · Medium ${count(DATA,'Medium')} · Hard ${count(DATA,'Hard')} — across ${cats.length} categories</p>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          ${cats.map(c => `
+            <a href="#/c/${esc(c.slug)}" class="${CARD}">
+              <div class="flex items-start justify-between">
+                <h2 class="font-semibold text-lg">${esc(c.name)}</h2>
+                <span class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${c.items.length}</span>
+              </div>
+              <div class="mt-4 flex gap-2 text-xs">
+                <span class="${DIFF.Easy} px-2 py-0.5 rounded-full">E ${count(c.items,'Easy')}</span>
+                <span class="${DIFF.Medium} px-2 py-0.5 rounded-full">M ${count(c.items,'Medium')}</span>
+                <span class="${DIFF.Hard} px-2 py-0.5 rounded-full">H ${count(c.items,'Hard')}</span>
+              </div>
+            </a>`).join('')}
+        </div>`;
+    }
+
+    function viewCategory(slug, filter = 'All') {
+      const cat = categories().find(c => c.slug === slug);
+      if (!cat) return viewNotFound();
+      const items = cat.items
+        .filter(q => filter === 'All' || q.difficulty === filter)
+        .sort((a, b) => a.number - b.number);
+      app.innerHTML = `
+        <a href="#/" class="text-sm text-slate-500 hover:text-emerald-600">← All categories</a>
+        <div class="flex flex-wrap items-center justify-between gap-3 mt-2 mb-6">
+          <h1 class="text-3xl font-bold tracking-tight">${esc(cat.name)}</h1>
+          <div class="flex gap-2" id="filters">
+            ${['All','Easy','Medium','Hard'].map(f => `
+              <button data-f="${f}" class="text-sm px-3 py-1 rounded-full border ${f===filter
+                ? 'bg-emerald-600 border-emerald-600 text-white'
+                : 'border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'}">${f}</button>`).join('')}
+          </div>
+        </div>
+        ${items.length ? `<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          ${items.map(q => `
+            <a href="#/q/${q.number}" class="${CARD}">
+              <div class="flex items-center justify-between text-sm text-slate-500"><span>#${q.number}</span>${badge(q.difficulty)}</div>
+              <h2 class="font-semibold text-lg mt-2">${esc(q.title)}</h2>
+              <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
+                <span>${esc(q.date)}</span>
+                <span class="flex gap-1">${Object.keys(q.files).map(l => `<span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">${LANG_LABEL[l] || esc(l)}</span>`).join('')}</span>
+              </div>
+            </a>`).join('')}
+        </div>` : `<p class="text-slate-500">No ${esc(filter)} questions here yet.</p>`}`;
+      document.getElementById('filters').addEventListener('click', e => {
+        const f = e.target.dataset.f;
+        if (f) viewCategory(slug, f);
+      });
+    }
+
+    // Split a solution file into: description, notes, code.
+    function parseSolution(text) {
+      const lines = text.replace(/\r/g, '').split('\n');
+      let i = 0;
+      while (i < lines.length && /^(#|\/\/)(\s|$)/.test(lines[i])) i++;
+      const header = lines.slice(0, i).map(l => l.replace(/^(#|\/\/) ?/, ''));
+      const code = lines.slice(i).join('\n').trim();
+      const m = header.indexOf('--- My notes ---');
+      const body = m === -1 ? header : header.slice(0, m);
+      const notes = m === -1 ? '' : header.slice(m + 1).join('\n').trim();
+      const firstBlank = body.findIndex(l => l.trim() === '');
+      const description = (firstBlank === -1 ? '' : body.slice(firstBlank + 1).join('\n')).trim();
+      return { description, notes, code };
+    }
+
+    async function viewQuestion(num, lang) {
+      const q = DATA.find(x => x.number === Number(num));
+      if (!q) return viewNotFound();
+      const langs = Object.keys(q.files);
+      lang = langs.includes(lang) ? lang : langs[0];
+      const topics = topicsOf(q);
+      app.innerHTML = `
+        <a href="#/c/${esc(topics[0].slug)}" class="text-sm text-slate-500 hover:text-emerald-600">← ${esc(topics[0].name)}</a>
+        <div class="flex flex-wrap items-center gap-3 mt-2">
+          <h1 class="text-3xl font-bold tracking-tight">${q.number}. ${esc(q.title)}</h1>${badge(q.difficulty)}
+        </div>
+        <div class="flex flex-wrap gap-2 mt-3">
+          ${topics.map(t => `<a href="#/c/${esc(t.slug)}" class="text-xs px-2 py-1 rounded-full border border-slate-300 dark:border-slate-700 hover:border-emerald-500">${esc(t.name)}</a>`).join('')}
+        </div>
+        <div class="flex gap-2 mt-6" id="langs">
+          ${langs.map(l => `<button data-l="${l}" class="text-sm px-3 py-1 rounded-full border ${l===lang
+            ? 'bg-emerald-600 border-emerald-600 text-white'
+            : 'border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'}">${LANG_LABEL[l] || esc(l)}</button>`).join('')}
+        </div>
+        <div id="body" class="mt-6 text-slate-500">Loading…</div>`;
+      document.getElementById('langs').addEventListener('click', e => {
+        const l = e.target.dataset.l;
+        if (l) viewQuestion(num, l);
+      });
+
+      try {
+        const res = await fetch(q.files[lang]);
+        if (!res.ok) throw new Error(res.status);
+        const { description, notes, code } = parseSolution(await res.text());
+        const hl = lang === 'python' ? 'python' : 'cpp';
+        const section = (title, inner) => `<section class="mb-8"><h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500 mb-2">${title}</h2>${inner}</section>`;
+        const prose = (t) => `<div class="whitespace-pre-wrap rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-sm leading-relaxed">${esc(t)}</div>`;
+        const body = document.getElementById('body');
+        body.className = 'mt-6';
+        body.innerHTML =
+          (description ? section('Problem', prose(description)) : '') +
+          section('Solution', `<pre><code class="language-${hl}" id="code"></code></pre>`) +
+          (notes ? section('My notes', prose(notes)) : '') +
+          `<a class="text-sm text-emerald-600 dark:text-emerald-400 hover:underline" href="https://leetcode.com/problems/${esc(slugify(q.title))}/" target="_blank" rel="noopener">Open on LeetCode ↗</a>`;
+        const el = document.getElementById('code');
+        el.textContent = code;
+        hljs.highlightElement(el);
+      } catch (err) {
+        document.getElementById('body').innerHTML =
+          `<p class="text-rose-500">Could not load ${esc(q.files[lang])}. If you opened this file directly, run <code>python -m http.server</code> and visit localhost:8000 instead.</p>`;
+      }
+    }
+
+    function viewNotFound() {
+      app.innerHTML = `<p class="text-slate-500">Not found. <a class="text-emerald-600 underline" href="#/">Go home</a></p>`;
+    }
+
+    // ---------- router ----------
+    function route() {
+      const [, kind, id] = location.hash.split('/');
+      window.scrollTo(0, 0);
+      if (kind === 'c' && id) viewCategory(decodeURIComponent(id));
+      else if (kind === 'q' && id) viewQuestion(id);
+      else viewHome();
+    }
+
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const dark = document.documentElement.classList.toggle('dark');
+      try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+    });
+
+    window.addEventListener('hashchange', route);
+    fetch('index.json?' + Date.now())
+      .then(r => r.ok ? r.json() : {})
+      .catch(() => ({}))
+      .then(d => { DATA = Object.values(d); route(); });
+  </script>
+</body>
+</html>
