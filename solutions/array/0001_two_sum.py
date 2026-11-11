@@ -63,10 +63,19 @@
 #
 # --- My notes ---
 # Approach:
-# Time complexity:
-# Space complexity:
-# What I got wrong / to revisit:
+# Use a hash map to store previously visited numbers and their indices.
+# Calculate complement = target - nums[i].
+# If complement exists, return its index and current index.
+# Otherwise, store nums[i] and its index.
 
+# Time complexity: O(n)
+
+# Space complexity: O(n)
+
+# What I got wrong / to revisit:
+# Understand the complement concept.
+# Remember to check the dictionary before inserting the current number.
+# This avoids using the same element twice.
 from typing import List, Optional
 
 class Solution:
