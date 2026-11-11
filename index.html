@@ -1,219 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DSA Journey</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script>tailwind.config = { darkMode: 'class' };</script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-  <script>
-    // apply saved theme before paint
-    try {
-      const t = localStorage.getItem('theme');
-      if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      }
-    } catch (e) {}
-  </script>
-  <style>
-    pre code.hljs { padding: 1rem; border-radius: 0.75rem; font-size: 0.85rem; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DSA Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" />
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config = { darkMode: 'class', theme: { extend: {
+  colors: { bg:'var(--bg)', surface:'var(--surface)', ink:'var(--ink)', mute:'var(--mute)', line:'var(--line)', accent:'var(--accent)', sage:'var(--sage)' },
+  fontFamily: { display:['"Space Grotesk"','sans-serif'], sans:['Inter','sans-serif'], mono:['"JetBrains Mono"','monospace'] }
+}}};
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script>
+try { const t = localStorage.getItem('theme');
+  if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark'); } catch (e) {}
+</script>
+<style>
+:root{--bg:#F3F0E8;--surface:#ECE8DC;--ink:#171918;--mute:#5E625E;--line:#D3CEC0;--accent:#E66B37;--sage:#A8B69A;--easy:#4F7A48;--med:#9A6E1A;--hard:#AD4458;--code:#1B201E}
+.dark{--bg:#151817;--surface:#1E2321;--ink:#EFEBE2;--mute:#8F9590;--line:#2F3633;--sage:#8C9E7F;--easy:#8DB081;--med:#D4A24A;--hard:#D9808F}
+body,header,.panel,a,button,select,input{transition:background-color .2s,color .2s,border-color .2s}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+pre code.hljs{background:var(--code);padding:1rem!important;font:13px/1.5rem "JetBrains Mono",monospace}
+.bar{transform-origin:left;animation:grow .6s ease-out both}
+@keyframes grow{from{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
 </head>
-<body class="bg-orange-200 text-slate-800 dark:bg-slate-950 dark:text-slate-200 min-h-screen">
-  <header class="border-b border-slate-200 dark:border-slate-800">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="#/" class="text-xl font-bold tracking-tight">DSA <span class="text-emerald-600 dark:text-emerald-400">Journey</span></a>
-      <button id="themeBtn" class="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Theme</button>
-    </div>
-  </header>
+<body class="bg-bg text-ink font-sans min-h-screen antialiased">
+<header class="border-b border-ink">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+    <a href="#/" class="font-display font-bold text-lg tracking-tight">DSA<span class="text-accent">/</span>JOURNEY</a>
+    <nav class="flex items-center gap-1 font-mono text-[11px] uppercase tracking-[.14em]" aria-label="Main">
+      <a data-nav="home" href="#/" class="px-3 py-2 border-b-2 border-transparent">Overview</a>
+      <a data-nav="problems" href="#/problems" class="px-3 py-2 border-b-2 border-transparent">Problems</a>
+      <button id="themeBtn" class="ml-2 px-3 py-2 border border-line hover:border-ink rounded-sm" aria-label="Toggle theme">Theme</button>
+    </nav>
+  </div>
+</header>
+<main id="app" class="max-w-6xl mx-auto px-4 sm:px-6 py-8"></main>
+<footer class="max-w-6xl mx-auto px-4 sm:px-6 pb-10 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Data: index.json + solutions/ · Generated by add.py</footer>
 
-  <main id="app" class="max-w-5xl mx-auto px-4 py-8"></main>
+<script>
+const app = document.getElementById('app');
+let DATA = [], CX = {};
+const F = { q:'', diff:'All', status:'All', topic:'all', sort:'num' };
+const DK = { Easy:'easy', Medium:'med', Hard:'hard' }, DR = { Easy:1, Medium:2, Hard:3 };
+const LANG = { python:'Python', cpp:'C++' };
 
-  <script>
-    const app = document.getElementById('app');
-    let DATA = [];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const slugify = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const topicsOf = q => (q.topics && q.topics.length) ? q.topics : [{ name:q.topic || 'Uncategorized', slug:slugify(q.topic || 'uncategorized') }];
+const lab = t => `<div class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">${t}</div>`;
+const panel = (cls, inner) => `<section class="panel border border-line bg-surface p-5 ${cls}">${inner}</section>`;
+const count = (a, d) => a.filter(q => q.difficulty === d).length;
+const badge = d => `<span class="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-line rounded-sm" style="color:var(--${DK[d]})"><i class="w-1.5 h-1.5 rounded-full bg-current"></i>${esc(d)}</span>`;
+const statusOf = q => CX[q.number] ? (CX[q.number].done ? 'Documented' : 'Needs notes') : '…';
+const statusCell = q => { const s = statusOf(q);
+  return `<span class="font-mono text-[10px] uppercase tracking-wider ${s==='Documented'?'text-ink':'text-mute'}"><i class="inline-block w-1.5 h-1.5 mr-1.5 rounded-full" style="background:${s==='Documented'?'var(--sage)':'var(--line)'}"></i>${s}</span>`; };
 
-    const DIFF = {
-      Easy:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-      Medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-      Hard:   'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
-    };
-    const LANG_LABEL = { python: 'Python', cpp: 'C++' };
-    const CARD = 'block rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md hover:border-emerald-400 dark:hover:border-emerald-500 transition';
+function categories() {
+  const m = new Map();
+  for (const q of DATA) for (const t of topicsOf(q)) {
+    if (!m.has(t.slug)) m.set(t.slug, { slug:t.slug, name:t.name, items:[] });
+    m.get(t.slug).items.push(q);
+  }
+  return [...m.values()].sort((a,b) => b.items.length - a.items.length || a.name.localeCompare(b.name));
+}
 
-    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const badge = (d) => `<span class="text-xs font-medium px-2 py-0.5 rounded-full ${DIFF[d] || ''}">${esc(d)}</span>`;
+// ---- solution file parsing (description / notes / code) ----
+function parseSolution(text) {
+  const lines = text.replace(/\r/g,'').split('\n'); let i = 0;
+  while (i < lines.length && /^(#|\/\/)(\s|$)/.test(lines[i])) i++;
+  const header = lines.slice(0,i).map(l => l.replace(/^(#|\/\/) ?/,''));
+  const code = lines.slice(i).join('\n').trim();
+  const m = header.indexOf('--- My notes ---');
+  const body = m === -1 ? header : header.slice(0,m);
+  const notes = m === -1 ? '' : header.slice(m+1).join('\n').trim();
+  const fb = body.findIndex(l => l.trim() === '');
+  return { description:(fb === -1 ? '' : body.slice(fb+1).join('\n')).trim(), notes, code };
+}
+function parseNotes(n) {
+  const g = k => { const m = n.match(new RegExp(k + ':[ \\t]*(.*)','i')); return m ? m[1].trim() : ''; };
+  const o = { approach:g('Approach'), time:g('Time complexity'), space:g('Space complexity') };
+  o.done = !!(o.approach || o.time || o.space); return o;
+}
+async function loadMeta() {
+  await Promise.all(DATA.map(async q => {
+    try { const r = await fetch(q.files[Object.keys(q.files)[0]]); if (!r.ok) return;
+      CX[q.number] = parseNotes(parseSolution(await r.text()).notes); } catch (e) {}
+  }));
+  render(true);
+}
 
-    // every question is listed under all of its topics
-    const topicsOf = (q) => (q.topics && q.topics.length)
-      ? q.topics
-      : [{ name: q.topic || 'Uncategorized', slug: slugify(q.topic || 'uncategorized') }];
+// ---- dashboard ----
+function streaks(set) {
+  const day = 864e5, t = new Date(), end = Date.UTC(t.getFullYear(), t.getMonth(), t.getDate());
+  const has = ms => set.has(new Date(ms).toISOString().slice(0,10));
+  let cur = has(end) ? end : end - day, now = 0; while (has(cur)) { now++; cur -= day; }
+  let best = 0, run = 0, prev = null;
+  for (const v of [...set].sort().map(d => Date.parse(d)/day)) { run = (prev !== null && v - prev === 1) ? run + 1 : 1; best = Math.max(best, run); prev = v; }
+  return { now, best };
+}
+function heatmap(dates) {
+  const day = 864e5, t = new Date(), end = Date.UTC(t.getFullYear(), t.getMonth(), t.getDate());
+  const start = end - (new Date(end).getUTCDay() + 19*7) * day; let cells = '';
+  for (let ms = start; ms <= end; ms += day) {
+    const d = new Date(ms).toISOString().slice(0,10), n = dates[d] || 0;
+    cells += `<i title="${d}: ${n} added" class="block w-[11px] h-[11px] rounded-[2px]" style="background:${n ? 'var(--accent)' : 'var(--line)'};opacity:${n ? Math.min(.35 + n*.22, 1) : 1}"></i>`;
+  }
+  return `<div class="overflow-x-auto pb-1"><div class="grid grid-flow-col grid-rows-7 gap-[3px] w-max">${cells}</div></div>`;
+}
+const TREE = `<svg aria-hidden="true" viewBox="0 0 220 150" class="absolute right-3 top-3 w-40 sm:w-52 text-accent opacity-40 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.2">
+<path d="M110 20 60 70M110 20 160 70M60 70 30 125M60 70 90 125M160 70 135 125M160 70 190 125"/>
+<g fill="var(--surface)"><circle cx="110" cy="20" r="8"/><circle cx="60" cy="70" r="8"/><circle cx="160" cy="70" r="8"/><circle cx="30" cy="125" r="8"/><circle cx="90" cy="125" r="8"/><circle cx="135" cy="125" r="8"/><circle cx="190" cy="125" r="8"/></g></svg>`;
 
-    function categories() {
-      const map = new Map();
-      for (const q of DATA) for (const t of topicsOf(q)) {
-        if (!map.has(t.slug)) map.set(t.slug, { slug: t.slug, name: t.name, items: [] });
-        map.get(t.slug).items.push(q);
-      }
-      return [...map.values()].sort((a, b) => b.items.length - a.items.length || a.name.localeCompare(b.name));
-    }
-    const count = (items, d) => items.filter(q => q.difficulty === d).length;
+function viewHome() {
+  if (!DATA.length) { app.innerHTML = `<div class="py-24 max-w-lg">${lab('Empty index')}<h1 class="font-display font-bold text-4xl mt-2">No problems logged yet.</h1><p class="mt-3 text-mute">Run <code class="font-mono px-1.5 py-0.5 bg-surface border border-line">python3 add.py 1 python</code>, push, and refresh.</p></div>`; return; }
+  const n = DATA.length, dates = {}; DATA.forEach(q => dates[q.date] = (dates[q.date] || 0) + 1);
+  const s = streaks(new Set(Object.keys(dates))), files = DATA.reduce((a,q) => a + Object.keys(q.files).length, 0);
+  const cats = categories(), top = cats.slice(0,8), max = top[0].items.length;
+  const recent = [...DATA].sort((a,b) => b.date.localeCompare(a.date) || b.number - a.number).slice(0,6);
+  const seg = d => { const c = count(DATA,d); return c ? `<div class="bar h-full" style="width:${c/n*100}%;background:var(--${DK[d]})" title="${d}: ${c}"></div>` : ''; };
+  const cx = {}; Object.values(CX).forEach(c => { const k = c.time.replace(/\s/g,''); if (k) cx[k] = (cx[k]||0) + 1; });
+  const cxl = Object.entries(cx).sort((a,b) => b[1]-a[1]).slice(0,5), cxmax = cxl.length ? cxl[0][1] : 1;
+  app.innerHTML = `<div class="grid gap-4 lg:grid-cols-3">
+  ${panel('relative overflow-hidden lg:col-span-2', TREE + lab('Problems solved') + `
+    <div class="font-display font-bold leading-none tracking-tighter text-[5.5rem] sm:text-[8rem] mt-2">${String(n).padStart(2,'0')}</div>
+    <div class="mt-6 flex h-2 border border-line bg-bg">${seg('Easy')}${seg('Medium')}${seg('Hard')}</div>
+    <div class="mt-3 flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs">
+      ${['Easy','Medium','Hard'].map(d => `<span style="color:var(--${DK[d]})">${d.toUpperCase()} <b class="text-ink">${count(DATA,d)}</b></span>`).join('')}
+    </div>`)}
+  ${panel('', lab('Streak') + `<div class="font-display font-bold text-6xl mt-2 leading-none">${s.now}<span class="font-mono text-xs font-normal text-mute ml-2">DAYS</span></div>
+    <dl class="mt-6 grid grid-cols-3 gap-2 font-mono text-xs border-t border-line pt-3">
+      <div><dt class="text-mute text-[10px] uppercase tracking-wider">Best</dt><dd class="text-lg font-bold">${s.best}</dd></div>
+      <div><dt class="text-mute text-[10px] uppercase tracking-wider">Active</dt><dd class="text-lg font-bold">${Object.keys(dates).length}</dd></div>
+      <div><dt class="text-mute text-[10px] uppercase tracking-wider">Files</dt><dd class="text-lg font-bold">${files}</dd></div></dl>`)}
+  ${panel('lg:col-span-2', lab('Activity · last 20 weeks · by date added') + `<div class="mt-4">${heatmap(dates)}</div>`)}
+  ${panel('', lab('Time complexity') + (cxl.length ? `<ul class="mt-4 space-y-2 font-mono text-xs">${cxl.map(([k,v]) => `<li><div class="flex justify-between"><span>${esc(k)}</span><span class="text-mute">${v}</span></div><div class="h-1 bg-line mt-1"><div class="bar h-full bg-accent" style="width:${v/cxmax*100}%"></div></div></li>`).join('')}</ul>`
+     : `<p class="mt-4 text-sm text-mute">Fill in <span class="font-mono">Time complexity:</span> in a solution's notes and the distribution appears here.</p>`))}
+  ${panel('', lab('Topic mastery') + `<ul class="mt-4 space-y-3">${top.map(c => `<li><a href="#/c/${esc(c.slug)}" class="block group"><div class="flex justify-between font-mono text-xs"><span class="group-hover:text-accent">${esc(c.name)}</span><span class="text-mute">${c.items.length}</span></div><div class="h-1 bg-line mt-1"><div class="bar h-full bg-sage" style="width:${c.items.length/max*100}%"></div></div></a></li>`).join('')}</ul>`)}
+  ${panel('lg:col-span-2', lab('Recent activity') + `<ul class="mt-3 divide-y divide-line">${recent.map(q => `<li><a href="#/q/${q.number}" class="flex items-center gap-4 py-2.5 hover:text-accent"><span class="font-mono text-xs text-mute w-12">#${q.number}</span><span class="flex-1 truncate font-medium">${esc(q.title)}</span>${badge(q.difficulty)}<span class="hidden sm:block font-mono text-xs text-mute">${esc(q.date)}</span></a></li>`).join('')}</ul>
+    <a href="#/problems" class="inline-block mt-3 font-mono text-[11px] uppercase tracking-[.14em] border-b border-accent">All problems →</a>`)}
+  </div>`;
+}
 
-    // ---------- views ----------
-    function viewHome() {
-      const cats = categories();
-      if (!DATA.length) {
-        app.innerHTML = `<div class="text-center py-20">
-          <h1 class="text-2xl font-bold mb-2">No questions yet</h1>
-          <p class="text-slate-500">Run <code class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">python add.py 1 python</code> and refresh.</p></div>`;
-        return;
-      }
-      app.innerHTML = `
-        <div class="mb-8">
-          <h1 class="text-3xl font-bold tracking-tight">${DATA.length} solved</h1>
-          <p class="text-slate-500 mt-1">Easy ${count(DATA,'Easy')} · Medium ${count(DATA,'Medium')} · Hard ${count(DATA,'Hard')} — across ${cats.length} categories</p>
-        </div>
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          ${cats.map(c => `
-            <a href="#/c/${esc(c.slug)}" class="${CARD}">
-              <div class="flex items-start justify-between">
-                <h2 class="font-semibold text-lg">${esc(c.name)}</h2>
-                <span class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${c.items.length}</span>
-              </div>
-              <div class="mt-4 flex gap-2 text-xs">
-                <span class="${DIFF.Easy} px-2 py-0.5 rounded-full">E ${count(c.items,'Easy')}</span>
-                <span class="${DIFF.Medium} px-2 py-0.5 rounded-full">M ${count(c.items,'Medium')}</span>
-                <span class="${DIFF.Hard} px-2 py-0.5 rounded-full">H ${count(c.items,'Hard')}</span>
-              </div>
-            </a>`).join('')}
-        </div>`;
-    }
+// ---- problem explorer ----
+function list() {
+  const s = F.q.trim().toLowerCase();
+  const a = DATA.filter(q => (F.diff === 'All' || q.difficulty === F.diff) && (F.topic === 'all' || topicsOf(q).some(t => t.slug === F.topic))
+    && (F.status === 'All' || statusOf(q) === F.status)
+    && (!s || (q.number + ' ' + q.title + ' ' + topicsOf(q).map(t => t.name).join(' ')).toLowerCase().includes(s)));
+  const by = { num:(a,b) => a.number-b.number, new:(a,b) => b.date.localeCompare(a.date) || b.number-a.number,
+    diff:(a,b) => DR[a.difficulty]-DR[b.difficulty] || a.number-b.number, title:(a,b) => a.title.localeCompare(b.title) };
+  return a.sort(by[F.sort]);
+}
+const COLS = 'grid-cols-[3rem_1fr_auto] md:grid-cols-[3.5rem_1fr_11rem_5.5rem_5rem_5rem_6.5rem]';
+function paintRows() {
+  const a = list(); document.getElementById('count').textContent = `${a.length} / ${DATA.length} shown`;
+  document.getElementById('rows').innerHTML = a.length ? a.map(q => { const c = CX[q.number] || {};
+    return `<a href="#/q/${q.number}" class="grid ${COLS} gap-x-3 items-center px-3 py-2.5 border-b border-line hover:bg-surface">
+      <span class="font-mono text-xs text-mute">#${q.number}</span><span class="font-medium truncate">${esc(q.title)}</span>
+      <span class="hidden md:block truncate font-mono text-[11px] text-mute">${topicsOf(q).map(t => esc(t.name)).join(', ')}</span>
+      <span>${badge(q.difficulty)}</span><span class="hidden md:block font-mono text-xs">${esc(c.time || '—')}</span>
+      <span class="hidden md:block font-mono text-xs">${esc(c.space || '—')}</span><span class="hidden md:block">${statusCell(q)}</span></a>`; }).join('')
+    : `<p class="px-3 py-10 text-mute">Nothing matches these filters. <button id="reset" class="underline decoration-accent">Reset</button></p>`;
+  const r = document.getElementById('reset'); if (r) r.onclick = () => { Object.assign(F, { q:'', diff:'All', status:'All', topic:'all' }); viewProblems(); };
+}
+function viewProblems() {
+  const pill = (k, v) => `<button data-k="${k}" data-v="${v}" aria-pressed="${F[k]===v}" class="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 border rounded-full ${F[k]===v ? 'bg-ink text-bg border-ink' : 'border-line text-mute hover:text-ink hover:border-ink'}">${v}</button>`;
+  const sel = 'bg-bg border border-line font-mono text-xs px-2 py-1.5 rounded-sm';
+  const cat = categories().find(c => c.slug === F.topic);
+  app.innerHTML = `${lab('Problem explorer')}
+    <h1 class="font-display font-bold text-4xl sm:text-5xl tracking-tight mt-1">${cat ? esc(cat.name) : 'All problems'}</h1>
+    <div class="relative mt-6"><input id="q" type="search" value="${esc(F.q)}" placeholder="Search number, title or topic" aria-label="Search problems" class="w-full bg-bg border-2 border-ink focus:border-accent outline-none px-4 py-3 font-mono text-sm rounded-sm" />
+      <kbd class="hidden sm:block absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-mute border border-line px-1.5 py-0.5">/</kbd></div>
+    <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3" id="ctl">
+      <div class="flex gap-1.5" role="group" aria-label="Difficulty">${['All','Easy','Medium','Hard'].map(v => pill('diff', v)).join('')}</div>
+      <div class="flex gap-1.5" role="group" aria-label="Status">${['All','Documented','Needs notes'].map(v => pill('status', v)).join('')}</div>
+      <select id="topic" class="${sel}" aria-label="Topic"><option value="all">All topics</option>${categories().map(c => `<option value="${esc(c.slug)}" ${c.slug===F.topic?'selected':''}>${esc(c.name)} (${c.items.length})</option>`).join('')}</select>
+      <select id="sort" class="${sel}" aria-label="Sort">${[['num','Number'],['new','Newest'],['diff','Difficulty'],['title','Title']].map(([v,l]) => `<option value="${v}" ${v===F.sort?'selected':''}>Sort: ${l}</option>`).join('')}</select>
+      <span id="count" class="ml-auto font-mono text-[11px] text-mute"></span></div>
+    <div class="mt-6 border-t border-ink">
+      <div class="hidden md:grid ${COLS} gap-x-3 px-3 py-2 border-b border-line font-mono text-[10px] uppercase tracking-[.14em] text-mute"><span>No.</span><span>Title</span><span>Topics</span><span>Level</span><span>Time</span><span>Space</span><span>Status</span></div>
+      <div id="rows"></div></div>`;
+  document.getElementById('q').oninput = e => { F.q = e.target.value; paintRows(); };
+  document.getElementById('topic').onchange = e => { F.topic = e.target.value; viewProblems(); };
+  document.getElementById('sort').onchange = e => { F.sort = e.target.value; paintRows(); };
+  document.getElementById('ctl').onclick = e => { const b = e.target.closest('button[data-k]'); if (b) { F[b.dataset.k] = b.dataset.v; viewProblems(); } };
+  paintRows();
+}
 
-    function viewCategory(slug, filter = 'All') {
-      const cat = categories().find(c => c.slug === slug);
-      if (!cat) return viewNotFound();
-      const items = cat.items
-        .filter(q => filter === 'All' || q.difficulty === filter)
-        .sort((a, b) => a.number - b.number);
-      app.innerHTML = `
-        <a href="#/" class="text-sm text-slate-500 hover:text-emerald-600">← All categories</a>
-        <div class="flex flex-wrap items-center justify-between gap-3 mt-2 mb-6">
-          <h1 class="text-3xl font-bold tracking-tight">${esc(cat.name)}</h1>
-          <div class="flex gap-2" id="filters">
-            ${['All','Easy','Medium','Hard'].map(f => `
-              <button data-f="${f}" class="text-sm px-3 py-1 rounded-full border ${f===filter
-                ? 'bg-emerald-600 border-emerald-600 text-white'
-                : 'border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'}">${f}</button>`).join('')}
-          </div>
-        </div>
-        ${items.length ? `<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          ${items.map(q => `
-            <a href="#/q/${q.number}" class="${CARD}">
-              <div class="flex items-center justify-between text-sm text-slate-500"><span>#${q.number}</span>${badge(q.difficulty)}</div>
-              <h2 class="font-semibold text-lg mt-2">${esc(q.title)}</h2>
-              <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
-                <span>${esc(q.date)}</span>
-                <span class="flex gap-1">${Object.keys(q.files).map(l => `<span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">${LANG_LABEL[l] || esc(l)}</span>`).join('')}</span>
-              </div>
-            </a>`).join('')}
-        </div>` : `<p class="text-slate-500">No ${esc(filter)} questions here yet.</p>`}`;
-      document.getElementById('filters').addEventListener('click', e => {
-        const f = e.target.dataset.f;
-        if (f) viewCategory(slug, f);
-      });
-    }
+// ---- question page ----
+async function viewQuestion(num, lang) {
+  const q = DATA.find(x => x.number === Number(num)); if (!q) return viewNotFound();
+  const langs = Object.keys(q.files); lang = langs.includes(lang) ? lang : langs[0];
+  const tp = topicsOf(q);
+  app.innerHTML = `<a href="#/problems" class="font-mono text-[11px] uppercase tracking-[.14em] text-mute hover:text-accent">← Problems</a>
+    <div class="mt-4 flex flex-wrap items-end gap-x-5 gap-y-2">
+      <span class="font-display font-bold text-5xl sm:text-7xl leading-none text-accent">${String(q.number).padStart(2,'0')}</span>
+      <h1 class="font-display font-bold text-3xl sm:text-4xl tracking-tight">${esc(q.title)}</h1></div>
+    <div class="mt-4 flex flex-wrap items-center gap-2">${badge(q.difficulty)}${tp.map(t => `<a href="#/c/${esc(t.slug)}" class="font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-line hover:border-accent rounded-sm">${esc(t.name)}</a>`).join('')}
+      <span class="font-mono text-[10px] text-mute ml-1">ADDED ${esc(q.date)}</span></div>
+    <div class="mt-6 flex gap-1.5" id="langs" role="group" aria-label="Language">${langs.map(l => `<button data-l="${l}" aria-pressed="${l===lang}" class="font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 border rounded-full ${l===lang ? 'bg-ink text-bg border-ink' : 'border-line text-mute hover:text-ink hover:border-ink'}">${LANG[l] || esc(l)}</button>`).join('')}</div>
+    <div id="body" class="mt-6 font-mono text-xs text-mute">LOADING…</div>`;
+  document.getElementById('langs').onclick = e => { const l = e.target.dataset.l; if (l) viewQuestion(num, l); };
+  try {
+    const res = await fetch(q.files[lang]); if (!res.ok) throw new Error(res.status);
+    const { description, notes, code } = parseSolution(await res.text()), n = parseNotes(notes);
+    const prose = t => `<div class="whitespace-pre-wrap border border-line bg-surface p-4 text-sm leading-relaxed">${esc(t)}</div>`;
+    const sec = (t, inner) => `<section class="mb-8">${lab(t)}<div class="mt-2">${inner}</div></section>`;
+    const lines = code.split('\n').length, hl = lang === 'python' ? 'python' : 'cpp';
+    document.getElementById('body').className = 'mt-6';
+    document.getElementById('body').innerHTML =
+      `<div class="grid grid-cols-2 sm:grid-cols-3 border border-line mb-8 font-mono">
+        ${[['Time', n.time], ['Space', n.space], ['Approach', n.approach]].map(([k,v]) => `<div class="p-3 border-r border-line last:border-r-0 min-w-0">${lab(k)}<div class="mt-1 text-sm truncate">${esc(v || '—')}</div></div>`).join('')}</div>` +
+      (description ? sec('Problem', prose(description)) : '') +
+      sec('Solution', `<div class="border border-ink"><div class="flex items-center justify-between px-3 py-1.5 bg-surface border-b border-ink font-mono text-[10px] uppercase tracking-wider text-mute"><span class="truncate">${esc(q.files[lang])}</span><button id="copy" class="px-2 py-0.5 border border-line hover:border-accent hover:text-accent rounded-sm">Copy</button></div>
+        <div class="flex bg-[var(--code)]"><pre aria-hidden="true" class="select-none text-right font-mono text-[13px] leading-6 text-[#6c7470] py-4 pl-3 pr-2 border-r border-[#2f3633]">${Array.from({length:lines}, (_,i) => i+1).join('\n')}</pre>
+        <pre class="flex-1 overflow-x-auto"><code class="language-${hl}" id="code"></code></pre></div></div>`) +
+      (notes ? sec('My notes', prose(notes)) : '') +
+      `<a class="font-mono text-[11px] uppercase tracking-[.14em] border-b border-accent" href="https://leetcode.com/problems/${esc(slugify(q.title))}/" target="_blank" rel="noopener">Open on LeetCode ↗</a>`;
+    const el = document.getElementById('code'); el.textContent = code; hljs.highlightElement(el);
+    document.getElementById('copy').onclick = async e => { const b = e.currentTarget;
+      try { await navigator.clipboard.writeText(code); b.textContent = 'Copied'; } catch (_) { b.textContent = 'Failed'; }
+      setTimeout(() => b.textContent = 'Copy', 1500); };
+  } catch (err) {
+    document.getElementById('body').innerHTML = `<p class="text-[var(--hard)]">Could not load ${esc(q.files[lang])}. If you opened this file directly, run <code>python3 -m http.server</code> and visit localhost:8000.</p>`;
+  }
+}
+const viewNotFound = () => { app.innerHTML = `<p class="text-mute">Not found. <a class="underline decoration-accent" href="#/">Go home</a></p>`; };
 
-    // Split a solution file into: description, notes, code.
-    function parseSolution(text) {
-      const lines = text.replace(/\r/g, '').split('\n');
-      let i = 0;
-      while (i < lines.length && /^(#|\/\/)(\s|$)/.test(lines[i])) i++;
-      const header = lines.slice(0, i).map(l => l.replace(/^(#|\/\/) ?/, ''));
-      const code = lines.slice(i).join('\n').trim();
-      const m = header.indexOf('--- My notes ---');
-      const body = m === -1 ? header : header.slice(0, m);
-      const notes = m === -1 ? '' : header.slice(m + 1).join('\n').trim();
-      const firstBlank = body.findIndex(l => l.trim() === '');
-      const description = (firstBlank === -1 ? '' : body.slice(firstBlank + 1).join('\n')).trim();
-      return { description, notes, code };
-    }
-
-    async function viewQuestion(num, lang) {
-      const q = DATA.find(x => x.number === Number(num));
-      if (!q) return viewNotFound();
-      const langs = Object.keys(q.files);
-      lang = langs.includes(lang) ? lang : langs[0];
-      const topics = topicsOf(q);
-      app.innerHTML = `
-        <a href="#/c/${esc(topics[0].slug)}" class="text-sm text-slate-500 hover:text-emerald-600">← ${esc(topics[0].name)}</a>
-        <div class="flex flex-wrap items-center gap-3 mt-2">
-          <h1 class="text-3xl font-bold tracking-tight">${q.number}. ${esc(q.title)}</h1>${badge(q.difficulty)}
-        </div>
-        <div class="flex flex-wrap gap-2 mt-3">
-          ${topics.map(t => `<a href="#/c/${esc(t.slug)}" class="text-xs px-2 py-1 rounded-full border border-slate-300 dark:border-slate-700 hover:border-emerald-500">${esc(t.name)}</a>`).join('')}
-        </div>
-        <div class="flex gap-2 mt-6" id="langs">
-          ${langs.map(l => `<button data-l="${l}" class="text-sm px-3 py-1 rounded-full border ${l===lang
-            ? 'bg-emerald-600 border-emerald-600 text-white'
-            : 'border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'}">${LANG_LABEL[l] || esc(l)}</button>`).join('')}
-        </div>
-        <div id="body" class="mt-6 text-slate-500">Loading…</div>`;
-      document.getElementById('langs').addEventListener('click', e => {
-        const l = e.target.dataset.l;
-        if (l) viewQuestion(num, l);
-      });
-
-      try {
-        const res = await fetch(q.files[lang]);
-        if (!res.ok) throw new Error(res.status);
-        const { description, notes, code } = parseSolution(await res.text());
-        const hl = lang === 'python' ? 'python' : 'cpp';
-        const section = (title, inner) => `<section class="mb-8"><h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500 mb-2">${title}</h2>${inner}</section>`;
-        const prose = (t) => `<div class="whitespace-pre-wrap rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-sm leading-relaxed">${esc(t)}</div>`;
-        const body = document.getElementById('body');
-        body.className = 'mt-6';
-        body.innerHTML =
-          (description ? section('Problem', prose(description)) : '') +
-          section('Solution', `<pre><code class="language-${hl}" id="code"></code></pre>`) +
-          (notes ? section('My notes', prose(notes)) : '') +
-          `<a class="text-sm text-emerald-600 dark:text-emerald-400 hover:underline" href="https://leetcode.com/problems/${esc(slugify(q.title))}/" target="_blank" rel="noopener">Open on LeetCode ↗</a>`;
-        const el = document.getElementById('code');
-        el.textContent = code;
-        hljs.highlightElement(el);
-      } catch (err) {
-        document.getElementById('body').innerHTML =
-          `<p class="text-rose-500">Could not load ${esc(q.files[lang])}. If you opened this file directly, run <code>python -m http.server</code> and visit localhost:8000 instead.</p>`;
-      }
-    }
-
-    function viewNotFound() {
-      app.innerHTML = `<p class="text-slate-500">Not found. <a class="text-emerald-600 underline" href="#/">Go home</a></p>`;
-    }
-
-    // ---------- router ----------
-    function route() {
-      const [, kind, id] = location.hash.split('/');
-      window.scrollTo(0, 0);
-      if (kind === 'c' && id) viewCategory(decodeURIComponent(id));
-      else if (kind === 'q' && id) viewQuestion(id);
-      else viewHome();
-    }
-
-    document.getElementById('themeBtn').addEventListener('click', () => {
-      const dark = document.documentElement.classList.toggle('dark');
-      try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
-    });
-
-    window.addEventListener('hashchange', route);
-    fetch('index.json?' + Date.now())
-      .then(r => r.ok ? r.json() : {})
-      .catch(() => ({}))
-      .then(d => { DATA = Object.values(d); route(); });
-  </script>
+// ---- router ----
+function render(keepScroll) {
+  const [, kind, id] = location.hash.split('/');
+  if (!keepScroll) scrollTo(0, 0);
+  document.querySelectorAll('[data-nav]').forEach(a => {
+    const on = a.dataset.nav === (kind === 'problems' || kind === 'c' || kind === 'q' ? 'problems' : 'home');
+    a.classList.toggle('border-accent', on); a.classList.toggle('border-transparent', !on); on ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current');
+  });
+  if (keepScroll && kind === 'q') return;               // don't redraw a question while reading it
+  if (keepScroll && kind !== undefined && kind !== '' && document.activeElement && document.activeElement.id === 'q') return;
+  if (kind === 'c' && id) { F.topic = decodeURIComponent(id); viewProblems(); }
+  else if (kind === 'problems') viewProblems();
+  else if (kind === 'q' && id) viewQuestion(id);
+  else viewHome();
+}
+document.getElementById('themeBtn').onclick = () => {
+  const d = document.documentElement.classList.toggle('dark'); try { localStorage.setItem('theme', d ? 'dark' : 'light'); } catch (e) {}
+};
+addEventListener('keydown', e => { if (e.key === '/' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault();
+  if (!document.getElementById('q')) { location.hash = '#/problems'; }
+  setTimeout(() => { const i = document.getElementById('q'); if (i) i.focus(); }, 30); } });
+addEventListener('hashchange', () => render());
+app.innerHTML = `<p class="font-mono text-xs text-mute">LOADING INDEX…</p>`;
+fetch('index.json?' + Date.now()).then(r => r.ok ? r.json() : {}).catch(() => ({}))
+  .then(d => { DATA = Object.values(d); render(); loadMeta(); });
+</script>
 </body>
 </html>
