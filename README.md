@@ -32,9 +32,9 @@ python3 -m http.server
 ## Progress
 
 <!-- PROGRESS:START -->
-**Solved: 1**  (Easy 1 / Medium 0 / Hard 0)
+**Solved: 0 / 1 logged**  (Easy 0 / Medium 0 / Hard 0)
 
-| # | Title | Difficulty | Topic | Solutions | Date |
-|---|-------|------------|-------|-----------|------|
-| 1 | Two Sum | Easy | Array | [python](solutions/array/0001_two_sum.py) | 2026-11-11 |
+| # | Title | Difficulty | Topic | Status | Solutions | Date |
+|---|-------|------------|-------|--------|-----------|------|
+| 1 | Two Sum | Easy | Array | Unsolved | [python](solutions/array/0001_two_sum.py) | 2026-11-11 |
 <!-- PROGRESS:END -->
